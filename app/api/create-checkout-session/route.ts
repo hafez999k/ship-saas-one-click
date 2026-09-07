@@ -2,19 +2,34 @@ import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-// 初始化Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-11-20.acacia",
-});
-
-// 根据环境选择正确的 URL
-const baseUrl = process.env.NODE_ENV === "development"
-  ? process.env.NEXT_PUBLIC_LOCAL_URL
-  : process.env.NEXT_PUBLIC_SITE_URL;
-
 export async function POST(request: Request) {
   try {
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
+    if (!stripeSecretKey) {
+      return NextResponse.json(
+        { error: "Stripe is not configured" },
+        { status: 503 }
+      );
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: "2024-11-20.acacia",
+    });
+
+    const baseUrl = process.env.NODE_ENV === "development"
+      ? process.env.NEXT_PUBLIC_LOCAL_URL
+      : process.env.NEXT_PUBLIC_SITE_URL;
+
+    if (!baseUrl) {
+      return NextResponse.json(
+        { error: "Site URL is not configured" },
+        { status: 503 }
+      );
+    }
+
     // 解析请求体
+
     const { priceId, userId, locale } = await request.json();
 
     // 验证必要参数

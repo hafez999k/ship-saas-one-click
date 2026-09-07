@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from "openai";
 import { createClient } from '@/lib/supabase/server';
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  baseURL: process.env.OPENAI_API_BASE,
-});
 
 // locale 语言 映射表
 const localeMap = {
@@ -13,7 +9,19 @@ const localeMap = {
 }
 
 export async function POST(request: NextRequest) {
+  const apiKey = process.env.OPENAI_API_KEY;
 
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "OpenAI is not configured" },
+      { status: 503 }
+    );
+  }
+
+  const openai = new OpenAI({
+    apiKey,
+    baseURL: process.env.OPENAI_API_BASE,
+  });
   const supabase = await createClient();
   const locale = request.headers.get('Accept-Language') || 'en'
   const { gender, genre, nameStyle, traits, additionalInfo, count, defaultNames } = await request.json();

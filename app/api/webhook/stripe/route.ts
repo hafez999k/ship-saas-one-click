@@ -2,17 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createServerClient } from "@/lib/supabase/server-client";
 
-// 初始化 Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2024-11-20.acacia",
-});
-
-// Webhook 签名密钥
-const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-console.log("endpointSecret", endpointSecret);
-const debug = true;
-
 export async function POST(request: NextRequest) {
+
   console.log('Received a POST request at /api/webhook/stripe');
   // 添加详细的请求日志
   console.log('Webhook Request URL:', request.url);
@@ -34,16 +25,22 @@ export async function POST(request: NextRequest) {
     const body = await request.text();
     const signature = request.headers.get("stripe-signature");
 
-    // 验证必要的环境变量
-    if (!process.env.STRIPE_WEBHOOK_SECRET) {
-      console.error("STRIPE_WEBHOOK_SECRET is not configured");
+    // Validate configuration only when the webhook is invoked so builds can collect the route safely.
+    if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+      console.error("Stripe webhook configuration is incomplete");
+
       return new NextResponse(
         JSON.stringify({ error: "Server configuration error" }),
         { status: 500, headers }
       );
     }
 
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2024-11-20.acacia",
+    });
+
     if (!signature) {
+
       console.error("No stripe signature found");
       return new NextResponse(
         JSON.stringify({ error: "No stripe signature found" }),
