@@ -4,7 +4,6 @@ import { Metadata } from "next";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import siteMetadata from '@/data/siteMetadata'
-import NotFound from './(default)/not-found'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import { Toaster as SonnerToaster } from 'sonner'
 
@@ -69,10 +68,6 @@ export const metadata: Metadata = {
         card: 'summary_large_image',
         images: [siteMetadata.socialBanner],
     },
-};
-
-export const notFound = {
-    component: NotFound
 };
 
 export default async function RootLayout({
